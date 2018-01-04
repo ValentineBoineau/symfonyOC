@@ -1,5 +1,9 @@
 version: '3'
 
+networks:
+    devtools:
+        external: true
+
 services:
     database:
         image: mysql
@@ -14,6 +18,8 @@ services:
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         labels:
             - "traefik.enable=false"
+        networks:
+            - devtools
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
@@ -30,6 +36,8 @@ services:
             - "traefik.frontend.rule=Host:pma.${SITE_HOST}"
             - "traefik.backend.loadbalancer.method=drr"
             - "traefik.frontend.passHostHeader=true"
+        networks:
+            - devtools
 
     php:
         env_file: ./.env
@@ -46,7 +54,8 @@ services:
 #            - ./var/logs/symfony/:/var/www/symfony/app/logs
         labels:
             - "traefik.enable=false"
-
+        networks:
+            - devtools
     nginx:
         image: nginx
 #        ports:
@@ -62,8 +71,9 @@ services:
             - "traefik.frontend.rule=Host:${SITE_HOST}"
             - "traefik.port=80"
             - "traefik.frontend.passHostHeader=true"
-
-networks:
-    default:
-        external:
-            name: devtools
+        networks:
+            - devtools
+    mailcatcher:
+        image: schickling/mailcatcher
+        networks:
+            - devtools

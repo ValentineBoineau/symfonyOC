@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Affichage de l'annonce {{ id }}</title>
+        <title>Affichage de l'annonce {{ advert.id }}</title>
     </head>
     <body>
-        <h1>Affichage de l'annonce n{{ id }}</h1>
+        <h1>Affichage de l'annonce n{{ advert.id }}</h1>
         <div>
             {% for message in app.session.flashbag.get('info') %}
             <p>Message flash: {{ message }}</p>
             {% endfor %}
         </div>
         <p>
-            Ici nous pourrons lire l'annonce ayant comme id: {{ id }}<br/>
-            Mais pour l'instant, nous ne savons pas le faire.
+            {% if advert.image is not null %}
+                <img src="{{ advert.image.url }}" alt="{{ advert.image.alt }}">
+            {% endif %}
+
         </p>
+        <h2>
+            {{ advert.title }}
+        </h2>
+    <p>{{ advert.content }}</p>
     </body>
 </html>

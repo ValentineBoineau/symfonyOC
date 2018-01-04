@@ -1,5 +1,4 @@
 imports:
-    - { resource: parameters.yml }
     - { resource: security.yml }
     - { resource: services.yml }
 
@@ -7,6 +6,12 @@ imports:
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: en
+    secret: 848484hugyftftyg
+    app_webmaster: truc
+    mailer_transport: 'smtp'
+    mailer_host: 'mailcatcher'
+    mailer_username: ''
+    mailer_password: ''
 
 framework:
     #esi: ~
@@ -43,19 +48,16 @@ twig:
 # Doctrine Configuration
 doctrine:
     dbal:
-        driver: pdo_mysql
-        host: '%database_host%'
-        port: '%database_port%'
-        dbname: '%database_name%'
-        user: '%database_user%'
-        password: '%database_password%'
-        charset: UTF8
-        # if using pdo_sqlite as your database driver:
-        #   1. add the path in parameters.yml
-        #     e.g. database_path: "%kernel.project_dir%/var/data/data.sqlite"
-        #   2. Uncomment database_path in parameters.yml.dist
-        #   3. Uncomment next line:
-        #path: '%database_path%'
+      default_connection: default
+      connections:
+        default:
+          driver: 'pdo_mysql'
+          host: 'database'
+          port: '3306'
+          dbname: '%env(MYSQL_DATABASE)%'
+          user: '%env(MYSQL_USER)%'
+          password: '%env(MYSQL_PASSWORD)%'
+          charset: UTF8
 
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'
@@ -66,6 +68,6 @@ doctrine:
 swiftmailer:
     transport: '%mailer_transport%'
     host: '%mailer_host%'
-    username: '%mailer_user%'
+    username: '%mailer_username%'
     password: '%mailer_password%'
     spool: { type: memory }
