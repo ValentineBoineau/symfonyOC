@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Debug\Debug;
+use Symfony\Component\Dotenv\Dotenv;
 
 // If you don't want to setup permissions the proper way, just uncomment the following PHP line
 // read https://symfony.com/doc/current/setup.html#checking-symfony-application-configuration-and-setup
@@ -22,10 +23,8 @@ if (isset($_SERVER['HTTP_CLIENT_IP'])
 $loader = require __DIR__.'/../vendor/autoload.php';
 Debug::enable();
 
+(new Dotenv)->load(__DIR__.'/../.env');
 $kernel = new AppKernel('dev', true);
-if (PHP_VERSION_ID < 70000) {
-    $kernel->loadClassCache();
-}
 $request = Request::createFromGlobals();
 $response = $kernel->handle($request);
 $response->send();

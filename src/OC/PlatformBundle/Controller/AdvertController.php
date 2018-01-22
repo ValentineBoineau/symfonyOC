@@ -4,8 +4,10 @@
 namespace OC\PlatformBundle\Controller;
 
 use OC\PlatformBundle\Entity\Advert;
+use OC\PlatformBundle\Entity\AdvertSkill;
 use OC\PlatformBundle\Entity\Application;
 use OC\PlatformBundle\Entity\Image;
+use OC\PlatformBundle\OCPlatformBundle;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -14,77 +16,64 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class AdvertController extends Controller
 {
     public function indexAction($page){
-        $mailer=$this->container->get('mailer');
+        if($page<1){
+            throw $this->createNotFoundException("Page ".page." inexistante.");
+        }
+        $nbPerPage=3;
+        $listAdverts=$this->getDoctrine()
+            ->getManager()
+            ->getRepository("OCPlatformBundle:Advert")
+            ->getAdverts($page,$nbPerPage);
+        $nbPages=ceil(count($listAdverts)/$nbPerPage);
+        if($page>$nbPages){
+            throw $this->createNotFoundException("La page ".$page." n'existe pas.");
+        }
+        return $this->render('OCPlatformBundle:Advert:index.html.twig',array(
+            'listAdverts'=>$listAdverts,
+            'nbPages'=>$nbPages,
+            'page'=>$page
+        ));
     }
 
-    public function viewAction($id){
-        $repository=$this->getDoctrine()->getManager()->getRepository('OCPlatformBundle:Advert');
-        $advert=$repository->find($id);
-
-        if (null===$advert){
-            throw new NotFoundHttpException("L'annonce d'id ".$id." n'existe pas.");
-        }
-        return $this->render('OCPlatformBundle:Advert:view.html.twig', array('advert'=>$advert,));
+    public function viewAction(Advert $advert){
+        $em=$this->getDoctrine()->getManager();
+        $listAdvertSkill=$em->getRepository('OCPlatformBundle:AdvertSkill')->findBy(array('advert'=>$advert));
+        $listApplications=$em->getRepository('OCPlatformBundle:Application')->findBy(array('advert'=>$advert));
+        return $this->render('OCPlatformBundle:Advert:view.html.twig', array('advert'=>$advert,'listApplications'=>$listApplications,'listAdvertSkill'=>$listAdvertSkill));
     }
 
     public function addAction(Request $request){
-        $advert=new Advert();
-        $advert->setTitle('Recherche développeur Sympfony');
-        $advert->setAuthor('Alexandre');
-        $advert->setContent("Nous recherchons un dev symfony débutant sur Lyon. Blablabla...");
-
-        $application1=new Application();
-        $application1->setAuthor('Marine');
-        $application1->setContent("J'ai toutes les qualités requises.");
-
-        $application2=new Application();
-        $application2->setAuthor('Pierre');
-        $application2->setContent("Je suis très motivé.");
-
-        $application1->setAdvert($advert);
-        $application2->setAdvert($advert);
-
-        $image =new Image();
-        $image->setUrl('http://sdz-upload.s3.amazonaws.com/prod/upload/job-de-reve.jpg');
-        $image->setAlt('Job de rêve');
-
-        $advert->setImage($image);
 
         $em=$this->getDoctrine()->getManager();
-
-        $em->persist($advert);
-        $em->persist($application1);
-        $em->persist($application2);
-
-        $em->flush();
-
-        if ($request->isMethod('POST')){
-            $request->getSession()->getFlashBag()->add('notice','Annonce bien enregistrée');
-            return $this->redirectToRoute('oc_platform_view', array('id'=> $advert->getId()));
+        if($request->isMethod('POST')){
+            $request->getSession()->getFlashBag()->add('notice','Annonce bien enregistrée.');
+            return $this->redirectToRoute('oc_platform_viw', array('id'=>$advert->getId()));
         }
-        return $this->render('OCPlatformBundle:Advert:add.html.twig', array('advert'=>$advert));
 
     }
 
-    public function editAction($id, Request $request){
-        if ($request->isMethod('POST')){
-            $request->getSession()->getFlashBag()->add('notice','Annonce B=bien modifiée');
-            return $this->redirectToRoute('oc_platform_view', array('id'=>5));
+    public function editAction(Advert $advert, Request $request){
+        $em =$this->getDoctrine()->getManager();
+        if($request->isMethod('POST')){
+            $request->getSession()->getFlashBag()->add('notice','Annonce bien modofiée.');
+            return $this->redirectToRoute('oc_platform_view', array('id'=>$advert->getId()));
         }
-        return $this->render('OCPlatformBundle:Advert:edit.html.twig');
+        return $this->render('OCPlatformBundle:Advert:edit.html.twig', array('advert'=>$advert->getId()));
     }
 
-    public function deleteAction($id){
-        return $this->render('OCPlatformBundle:Advert:delete.html.twig');
+    public function deleteAction(Advert $advert){
+        $em=$this->getDoctrine()->getManager();
 
+        foreach ($advert->getCategories() as $category){
+            $advert->removeCategory($category);
+        }
+    $em->flush();
     }
 
-    public function menuAction(){
-        $listAdverts=array(
-            array('id'=>2, 'title'=>'Recherche développeur Symfony'),
-            array('id' => 5, 'title' => 'Mission de webmaster'),
-            array('id' => 9, 'title' => 'Offre de stage webdesigner')
-        );
+    public function menuAction($limit){
+        $em=$this->getDoctrine()->getManager();
+
+        $listAdverts=$em->getRepository('OCPlatformBundle:Advert')->findBy(array(array('date'=>desc),$limit,0));
         return $this->render('OCPlatformBundle:Advert:menu.html.twig', array('listAdverts'=>$listAdverts));
     }
 }

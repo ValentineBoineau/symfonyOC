@@ -3,23 +3,23 @@
 namespace OC\PlatformBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Advert
  *
- * @ORM\Table(name="advert")
+ * @ORM\Table(name="oc_advert")
  * @ORM\Entity(repositoryClass="OC\PlatformBundle\Repository\AdvertRepository")
+ * @ORM\HasLifecycleCallbacks()
  */
 class Advert
 {
     /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     */
-    private $id;
+     * @ORM\Column(type="integer")
+     */private $id;
+    /**
 
     /**
      * @var \DateTime
@@ -61,6 +61,74 @@ class Advert
      */
 
     private $image;
+
+    /**
+     * @ORM\Column(name="updated_at", type="datetime", nullable=true)
+     */
+    private $updateAt;
+
+    /**
+     * @return mixed
+     */
+    public function getUpdateAt()
+    {
+        return $this->updateAt;
+    }
+
+    /**
+     * @param mixed $updateAt
+     */
+    public function setUpdateAt($updateAt)
+    {
+        $this->updateAt = $updateAt;
+    }
+    /**
+     * @ORM\ManyToMany(targetEntity="OC\PlatformBundle\Entity\Category", cascade={"persist"})
+     * @ORM\JoinTable(name="oc_advert_category")
+     */
+    private $categories;
+    /**
+     * @ORM\OneToMany(targetEntity="OC\PlatformBundle\Entity\Application", mappedBy="advert")
+     */
+    private $applications;
+
+    public function __construct(){
+        $this->date=new\DateTime();
+        $this->categories=new ArrayCollection();
+        $this->applications=new arrayCollection();
+    }
+
+    public function addCategory(Category $category){
+        if (!$this->categories->contains($category)){
+            $this->categories->add($category);
+        }
+    }
+
+    public function removeCategory(Category $category){
+        $this->categories->removeElement($category);
+    }
+
+    public function getCategories(){
+        return $this->categories;
+    }
+
+    public function addApplication(Application $application){
+        $this->applications[]=$application;
+        $application->setAdvert($this);
+        return $this;
+    }
+
+    public function removeApplication($application){
+        $this->applications->removeElement($application);
+    }
+
+    public function getApplication(){
+        return $this->applications;
+    }
+
+    public function updateDate(){
+        $this->setUpdateAt(new \DateTime());
+    }
 
 
     /**
@@ -167,11 +235,6 @@ class Advert
     public function getContent()
     {
         return $this->content;
-    }
-
-    public function __construct()
-    {
-        $this->date = new \Datetime();
     }
 
     /**
