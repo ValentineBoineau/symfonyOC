@@ -44,6 +44,8 @@ twig:
     strict_variables: '%kernel.debug%'
     globals:
         webmaster: "%app_webmaster%"
+    form_theme:
+        - 'bootstrap_3_layout.html.twig'
 
 # Doctrine Configuration
 doctrine:
@@ -71,3 +73,8 @@ swiftmailer:
     username: '%mailer_username%'
     password: '%mailer_password%'
     spool: { type: memory }
+
+stof_doctrine_extensions:
+    orm:
+        default:
+            sluggable: true

@@ -4,6 +4,9 @@ namespace OC\PlatformBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 /**
  * Advert
@@ -25,6 +28,7 @@ class Advert
      * @var \DateTime
      *
      * @ORM\Column(name="date", type="datetime")
+     * @Assert\DateTime()
      */
     private $date;
 
@@ -32,6 +36,7 @@ class Advert
      * @var string
      *
      * @ORM\Column(name="title", type="string", length=255)
+     * @Assert\Length(min=10)
      */
     private $title;
 
@@ -39,6 +44,7 @@ class Advert
      * @var string
      *
      * @ORM\Column(name="author", type="string", length=255)
+     * @Assert\Length(min=2)
      */
     private $author;
 
@@ -46,6 +52,7 @@ class Advert
      * @var string
      *
      * @ORM\Column(name="content", type="text")
+     * @Assert\NotBlank()
      */
     private $content;
 
@@ -56,8 +63,8 @@ class Advert
 
     /**
 
-     * @ORM\OneToOne(targetEntity="OC\PlatformBundle\Entity\Image", cascade={"persist"})
-
+     * @ORM\OneToOne(targetEntity="OC\PlatformBundle\Entity\Image", cascade={"persist","remove"})
+     * @Assert\Valid()
      */
 
     private $image;
@@ -66,6 +73,33 @@ class Advert
      * @ORM\Column(name="updated_at", type="datetime", nullable=true)
      */
     private $updateAt;
+
+    /**
+     * @ORM\Column(name="nb_applications",type="integer")
+     */
+    public $nbApplications=0;
+
+    /**
+     * @Gedmo\Slug(fields={"title"})
+     * @ORM\Column(name="slug", type="string", length=255, unique=true)
+     */
+    private $slug;
+
+    /**
+     * @return mixed
+     */
+    public function getSlug()
+    {
+        return $this->slug;
+    }
+
+    /**
+     * @param mixed $slug
+     */
+    public function setSlug($slug)
+    {
+        $this->slug = $slug;
+    }
 
     /**
      * @return mixed
@@ -126,10 +160,20 @@ class Advert
         return $this->applications;
     }
 
+    /**
+     * @ORM\PreUpdate
+     */
     public function updateDate(){
         $this->setUpdateAt(new \DateTime());
     }
 
+    public function increaseApplication(){
+        $this->nbApplications++;
+    }
+
+    public function decreaseApplication(){
+        $this->nbApplications--;
+    }
 
     /**
      * Get id

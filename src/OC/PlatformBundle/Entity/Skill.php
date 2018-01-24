@@ -17,6 +17,10 @@ class Skill
      */private $id;
 
     /**
+     * @ORM\Column(type="string")
+     */
+    private $name;
+    /**
      * @return mixed
      */
     public function getId()
@@ -47,8 +51,5 @@ class Skill
     {
         $this->name = $name;
     }
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $name;
+
 }
